@@ -1,0 +1,403 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vision Model Trainer & Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #train-status, #test-result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e0f7fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .status-text {
+            font-weight: bold;
+            color: #00695c;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Train Model</h2>
+    <form id="trainForm" enctype="multipart/form-data">
+        <label for="trainInstruction">Instruction:</label>
+        <input type="text" id="trainInstruction" name="instruction" required>
+
+        <label for="outputDir">Output Directory Name:</label>
+        <input type="text" id="outputDir" name="output_dir" required>
+
+        <label for="images">Upload Images:</label>
+        <input type="file" id="images" name="images" multiple required>
+
+        <label for="labels">Upload Labels (YOLO format):</label>
+        <input type="file" id="labels" name="labels" multiple required>
+
+        <label for="classes">Upload classes.txt:</label>
+        <input type="file" id="classes" name="classes" required>
+
+        <label for="notes">Upload notes.json (optional):</label>
+        <input type="file" id="notes" name="notes">
+
+        <button type="submit">Train Model</button>
+    </form>
+
+    <div id="train-status">
+        <span class="status-text" id="trainStatusText"></span>
+    </div>
+
+    <h2>Test Model (Inference)</h2>
+    <form id="testForm" enctype="multipart/form-data">
+        <label for="testInstruction">Instruction:</label>
+        <input type="text" id="testInstruction" name="instruction" required>
+
+        <label for="modelDir">Trained Model Output Directory Name:</label>
+        <input type="text" id="modelDir" name="output_dir" required>
+
+        <label for="testImage">Upload Test Image:</label>
+        <input type="file" id="testImage" name="image" required>
+
+        <!-- Image preview section -->
+        <!-- <div id="imagePreview" style="margin-top: 20px; display: none;">
+            <h3>Uploaded Test Image:</h3>
+            <img id="previewImage" src="" alt="Test Image Preview" style="max-width: 100%; max-height: 300px; border: 1px solid #ddd;">
+        </div>
+
+        <button type="submit">Test Model</button>
+    </form>
+
+    <div id="test-result">
+        <span class="status-text" id="testResultText"></span>
+    </div>
+
+    <div id="training-message" style="display: none; margin-top: 20px; font-weight: bold; color: #007bff;">
+        Model is training, please wait...
+    </div>
+
+    <div id="predicting-message" style="display: none; margin-top: 20px; font-weight: bold; color: #ff9800;">
+        Predicting result, please wait...
+    </div> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vision Model Trainer & Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 40px;
+            background: linear-gradient(to right, #e3f2fd, #ffffff);
+            color: #333;
+        }
+
+        h2 {
+            color: #1a237e;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background: #fff;
+            padding: 25px 30px;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s ease;
+        }
+
+        form:hover {
+            box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 12px 24px;
+            background-color: #1976d2;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0d47a1;
+        }
+
+        .info-box {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: #e3f2fd;
+            border-left: 6px solid #2196f3;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status-text {
+            color: #0d47a1;
+        }
+
+        #imagePreview {
+            margin-top: 20px;
+            display: none;
+        }
+
+        #imagePreview h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #1e88e5;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+
+            form {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Train Model</h2>
+    <form id="trainForm" enctype="multipart/form-data">
+        <label for="trainInstruction">Instruction:</label>
+        <input type="text" id="trainInstruction" name="instruction" required>
+
+        <label for="outputDir">Output Directory Name:</label>
+        <input type="text" id="outputDir" name="output_dir" required>
+
+        <label for="images">Upload Images:</label>
+        <input type="file" id="images" name="images" multiple required>
+
+        <label for="labels">Upload Labels (YOLO format):</label>
+        <input type="file" id="labels" name="labels" multiple required>
+
+        <label for="classes">Upload classes.txt:</label>
+        <input type="file" id="classes" name="classes" required>
+
+        <label for="notes">Upload notes.json (optional):</label>
+        <input type="file" id="notes" name="notes">
+
+        <button type="submit">🚀 Train Model</button>
+    </form>
+
+    <div id="train-status" class="info-box">
+        <span class="status-text" id="trainStatusText"></span>
+    </div>
+
+    <h2>Test Model (Inference)</h2>
+    <form id="testForm" enctype="multipart/form-data">
+        <label for="testInstruction">Instruction:</label>
+        <input type="text" id="testInstruction" name="instruction" required>
+
+        <label for="modelDir">Trained Model Output Directory Name:</label>
+        <input type="text" id="modelDir" name="output_dir" required>
+
+        <label for="testImage">Upload Test Image:</label>
+        <input type="file" id="testImage" name="image" required>
+
+        <div id="imagePreview">
+            <h3>Uploaded Test Image:</h3>
+            <img id="previewImage" src="" alt="Test Image Preview">
+        </div>
+
+        <button type="submit">🧪 Test Model</button>
+    </form>
+
+    <div id="test-result" class="info-box">
+        <span class="status-text" id="testResultText"></span>
+    </div>
+
+    <div id="training-message" class="info-box" style="color: #0d47a1;">
+        Model is training, please wait...
+    </div>
+
+    <div id="predicting-message" class="info-box" style="color: #ef6c00;">
+        Predicting result, please wait...
+    </div>
+
+    <script>
+        const trainInstruction = document.getElementById('trainInstruction');
+        const outputDir = document.getElementById('outputDir');
+        const testInstruction = document.getElementById('testInstruction');
+        const modelDir = document.getElementById('modelDir');
+    
+        // When user types in trainInstruction, update testInstruction
+        trainInstruction.addEventListener('input', function() {
+            testInstruction.value = trainInstruction.value;
+        });
+    
+        // When user types in outputDir, update modelDir
+        outputDir.addEventListener('input', function() {
+            modelDir.value = outputDir.value;
+        });
+
+        document.getElementById('testImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            console.log('File selected:', file); // Debug: Check if the file is being selected correctly
+
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                console.log('File loaded:', event.target.result); // Debug: Check if the file data is loaded correctly
+                const imagePreview = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
+
+                previewImage.src = event.target.result;  // Set the preview image source
+                imagePreview.style.display = 'block';  // Show the preview div
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);  // Read the uploaded file as a Data URL
+            }
+        });
+
+
+        document.getElementById('trainForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent normal form submission
+
+            const form = document.getElementById('trainForm');
+            const formData = new FormData(form);
+
+            const trainingMessage = document.getElementById('training-message');
+            trainingMessage.style.display = 'block'; // Show "Model is training..."
+
+            // 💡 Give the browser a chance to repaint
+            await new Promise(resolve => setTimeout(resolve, 10)); 
+
+            try {
+                const response = await fetch('/train', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Training Started Successfully!');
+                    console.log(result);
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                    console.error(result);
+                }
+            } catch (error) {
+                alert('Error sending request.');
+                console.error(error);
+            } finally {
+                trainingMessage.style.display = 'none'; // Hide message after
+            }
+        });
+
+
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            const predictingMessage = document.getElementById('predicting-message');
+            const resultDiv = document.getElementById('test-result');
+            const resultText = document.getElementById('testResultText');
+
+            predictingMessage.style.display = 'block'; // Show "Predicting..." message
+            resultDiv.style.display = 'none'; // Hide old result while predicting
+
+            // 💡 Give browser chance to repaint
+            await new Promise(resolve => setTimeout(resolve, 10)); 
+
+            try {
+                const response = await fetch('/infer', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('Backend result:', result);
+
+                resultText.textContent = result.prediction || 'No prediction found.';
+                resultDiv.style.display = 'block'; // Show result after prediction
+
+            } catch (error) {
+                console.error(error);
+                resultText.textContent = 'Error predicting result.';
+                resultDiv.style.display = 'block';
+            } finally {
+                predictingMessage.style.display = 'none'; // Hide "Predicting..." after done
+            }
+        });
+
+    </script>
+    
+    
+
+</body>
+</html>
